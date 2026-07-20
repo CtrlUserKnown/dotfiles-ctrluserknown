@@ -1,0 +1,18 @@
+# editor / OS junk
+.DS_Store
+**/.DS_Store
+._*
+**/._*
+*.log
+
+# ai
+CLAUDE.md
+**/CLAUDE.md
+
+# runtime stamps
+zsh/zsh/.update_stamp
+zsh/zsh/.version_stamp
+
+# tmux plugin repos (managed by tpm)
+zsh/tmux/plugins/
+tmux/plugins/

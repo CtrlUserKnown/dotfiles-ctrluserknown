@@ -1,0 +1,39 @@
+# dotfiles — declarative symlink manifest for `dots link`
+#
+# Apply with:   dots link apply
+# (First run:   ln -sf ~/development/dotfiles/links.toml ~/.dots/links.toml)
+#
+# Each [[link]] creates a symlink at `target` pointing to `source`.
+# Sources are the real files in this repo; `~` expands to your home dir.
+
+[[link]]
+source = "~/development/dotfiles/bat"
+target = "~/.config/bat"
+
+[[link]]
+source = "~/development/dotfiles/fastfetch"
+target = "~/.config/fastfetch"
+
+[[link]]
+source = "~/development/dotfiles/ghostty"
+target = "~/.config/ghostty"
+
+[[link]]
+source = "~/development/dotfiles/herdr"
+target = "~/.config/herdr"
+
+[[link]]
+source = "~/development/dotfiles/opencode"
+target = "~/.config/opencode"
+
+[[link]]
+source = "~/development/dotfiles/zsh/zsh"
+target = "~/.config/zsh"
+
+[[link]]
+source = "~/development/dotfiles/zsh/.zshrc"
+target = "~/.zshrc"
+
+[[link]]
+source = "~/development/dotfiles/git/.gitconfig"
+target = "~/.gitconfig"
