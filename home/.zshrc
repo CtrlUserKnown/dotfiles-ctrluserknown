@@ -307,8 +307,13 @@ if [[ -f "/opt/homebrew/share/zsh-history-substring-search/zsh-history-substring
 elif [[ -f "$HOME/.config/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh" ]]; then
     source "$HOME/.config/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh"
 fi
-bindkey '^[[A' history-substring-search-up
-bindkey '^[[B' history-substring-search-down
+if (( $+widgets[history-substring-search-up] )); then
+    bindkey '^[[A' history-substring-search-up
+    bindkey '^[[B' history-substring-search-down
+    # application-mode arrows (terminfo kcuu1/kcud1) — sent by many Linux terminals
+    bindkey '^[OA' history-substring-search-up
+    bindkey '^[OB' history-substring-search-down
+fi
 
 # zsh-syntax-highlighting — must be sourced last
 # main colors syntax, brackets highlights matched pairs

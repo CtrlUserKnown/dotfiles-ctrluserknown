@@ -4,7 +4,7 @@
     {
       "id": "w2",
       "custom_name": null,
-      "identity_cwd": "/Users/christian/development/ctrlvim/ctrlvim/src/nvim",
+      "identity_cwd": "/home/userknown/.config",
       "public_pane_numbers": {
         "1": 1
       },
@@ -21,7 +21,7 @@
           },
           "panes": {
             "1": {
-              "cwd": "/Users/christian/development/ctrlvim/ctrlvim/src/nvim"
+              "cwd": "/home/userknown/.config"
             }
           },
           "zoomed": false,
