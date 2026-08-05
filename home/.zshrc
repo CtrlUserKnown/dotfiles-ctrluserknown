@@ -1,13 +1,9 @@
 # zsh runtime configuration
-# dotfiles v1.5.5
 # Author: CrtlUserUnknown
 
 # --- config:locale ---
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
-
-# --- config:manpath ---
-export MANPATH="$HOME/.dots/src/man${MANPATH:+:$MANPATH}"
 
 # --- config:Homebrew ---
 # /opt/homebrew is apple silicon, /usr/local is intel
@@ -17,12 +13,8 @@ elif [[ -f "/usr/local/bin/brew" ]]; then
     eval "$(/usr/local/bin/brew shellenv)"
 fi
 
-# --- config:XDG (Linux) ---
-if [[ "$(uname -s)" == "Linux" ]]; then
-    export PATH="$HOME/.local/bin:$PATH"
-fi
-
-# --- config:Antigravity ---
+# --- config:local bin ---
+# ~/.local/bin holds user-installed tools (pip --user, Antigravity CLI, etc.) on both Linux and macOS
 export PATH="$HOME/.local/bin:$PATH"
 
 # --- config:editor ---
@@ -83,34 +75,10 @@ WORDCHARS=${WORDCHARS//[\/]}
 # EXTENDED_GLOB enables ** & ^pattern globs, AUTO_CD lets you enter a dir without typing cd
 setopt EXTENDED_GLOB AUTO_CD
 
-# --- config:developer mode ---
-# Create ~/.dots/.developer to opt into developer mode (disables update prompts).
-# Delete the file to re-enable auto-updates.
-if [[ -z "${DEVELOPER_MODE:-}" ]]; then
-    [[ -f "${HOME}/.dots/.developer" ]] && typeset -g DEVELOPER_MODE=1
-fi
-
-# --- config:update check ---
-# checks daily for dotfiles updates (skipped in developer mode)
-if [[ -f ~/.config/zsh/update-check.zsh ]]; then
-    source ~/.config/zsh/update-check.zsh
-fi
-
 # --- config:fastfetch ---
 # $$ is the shell pid — runs once per terminal process, not once per subshell
-# Respects the "greeting" setting in ~/.dots/.settings (toggled via 'dots' TUI)
-_dots_greeting=true
-if [[ -f ~/.dots/.settings ]]; then
-    _dots_raw=$(<~/.dots/.settings)
-    if [[ "$_dots_raw" =~ '"greeting":[[:space:]]*(true|false)' ]]; then
-        _dots_greeting="$match[1]"
-    fi
-fi
-if [[ "$_dots_greeting" == "true" && ! -f /tmp/zsh_fastfetch_$$ ]] && [[ $- == *i* ]]; then
+if [[ ! -f /tmp/zsh_fastfetch_$$ ]] && [[ $- == *i* ]]; then
     fastfetch
-    print ""
-    print "run 'dots' to customize your setup"
-    print ""
     touch /tmp/zsh_fastfetch_$$
 fi
 
@@ -124,16 +92,27 @@ fi
 autoload -Uz compinit
 zmodload zsh/complist
 
-compinit
+# only rebuild the completion dump once a day — regenerating on every shell start is slow
+if [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.mh+24) ]]; then
+    compinit
+else
+    compinit -C
+fi
 
 # --- config:zoxide ---
 # smarter cd that learns & ranks your most visited directories
 eval "$(zoxide init zsh)"
 
 # --- config:carapace ---
-# completion engine for many cli tools
+# completion engine for many cli tools — cache the generated script since invoking carapace itself is slow
 if command -v carapace >/dev/null 2>&1; then
-    source <(carapace _carapace)
+    _carapace_cache="$HOME/.cache/carapace_zsh.sh"
+    if [[ ! -f "$_carapace_cache" ]] || [[ -n ${_carapace_cache}(#qN.mh+24) ]]; then
+        mkdir -p "${_carapace_cache:h}"
+        carapace _carapace > "$_carapace_cache"
+    fi
+    source "$_carapace_cache"
+    unset _carapace_cache
 fi
 
 zstyle ':completion:*' menu select
@@ -176,14 +155,92 @@ if [[ -f ~/.config/zsh/plugins/fzf-tab/fzf-tab.plugin.zsh ]]; then
 fi
 
 # --- config:aliases ---
-if [[ -f ~/.config/zsh/.aliases ]]; then
-    source ~/.config/zsh/.aliases
+# command bypasses alias lookup — ensures the real binary is called
+alias cls="command clear"                        # clear the terminal
+alias ls="command eza --color=auto"              # list with color
+alias la="command eza -al --icons --color=auto"  # list all with icons
+alias lla="command eza -al --icons --color=auto" # same as la — alt name for muscle memory
+alias ll="command eza -l --icons --color=auto"   # list with icons
+alias reload='source ${ZDOTDIR:-$HOME}/.zshrc'   # reload shell config
+alias exi="exit"                                 # exit shell
+
+alias y="yazi"          # file manager
+alias py="python3"      # python
+alias ipy="ipython3"    # interactive python
+alias swiftinit="swift package init"
+alias sps="swift package show-dependencies"
+alias spt="swift package test"
+alias jv="java"
+alias jc="javac"
+alias rn="rustc"
+alias crun="cargo run"
+
+alias lz="lazygit"      # git TUI
+
+alias opc="opencode"    # opencode AI
+alias llama="ollama"    # local LLMs
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    alias antigravity="open -a Antigravity"
+    alias anti="open -a Antigravity"
 fi
 
+alias mux="herdr"        # multiplexer
+alias attach="herdr"     # attach to a session
+alias b="command btop"   # system monitor
+alias f="fzf"            # fuzzy finder
+
+# suffix aliases — typing file.rs runs $EDITOR file.rs automatically
+alias -s md="$EDITOR"
+alias -s rs="$EDITOR"
+alias -s swift="$EDITOR"
+alias -s py="$EDITOR"
+alias -s c="$EDITOR"
+alias -s cr="$EDITOR"
+
 # --- config:functions ---
-if [[ -f ~/.config/zsh/.functions ]]; then
-    source ~/.config/zsh/.functions
-fi
+function duplicate() {
+    if [ $# -eq 0 ]; then
+        echo "Usage: duplicate <file_or_folder> [destination_name]"
+        return 1
+    fi
+
+    local source="$1"
+    local destination="$2"
+
+    if [ ! -e "$source" ]; then
+        echo "Error: '$source' does not exist"
+        return 1
+    fi
+
+    if [ -z "$destination" ]; then
+        local basename="${source%/}"
+        local parent_dir="${basename%/*}"
+        local filename="${basename##*/}"
+
+        if [[ "$parent_dir" == "$basename" ]]; then
+            parent_dir=""
+        else
+            parent_dir="${parent_dir}/"
+        fi
+
+        if [[ "$filename" =~ ^\.[^.]+$ || "$filename" != *.* ]]; then
+            destination="${parent_dir}${filename} copy"
+        else
+            local extension="${filename##*.}"
+            local name="${filename%.*}"
+            destination="${parent_dir}${name} copy.${extension}"
+        fi
+    fi
+
+    cp -R "$source" "$destination"
+
+    if [ $? -eq 0 ]; then
+        echo "Duplicated '$source' to '$destination'"
+    else
+        echo "Error: Failed to duplicate '$source'"
+        return 1
+    fi
+}
 
 # --- config:hooks ---
 # auto-run ls when entering these frequently-navigated directories
@@ -200,8 +257,10 @@ source ~/.config/zsh/themes/charModel
 # --- config:keybindings ---
 autoload -Uz edit-command-line
 zle -N edit-command-line
-# opens the current command in $EDITOR
-bindkey '^E' edit-command-line
+# opens the current command in $EDITOR — alt+e, not ^E, so cmd+right-arrow's
+# terminal-emulated "end of line" (^E) keeps its default zsh behavior.
+# this overrides emacs' default alt+e (capitalize-word)
+bindkey '^[e' edit-command-line
 # ctrl+_ is zsh's built-in line-edit undo
 bindkey '^_' undo
 
@@ -215,15 +274,16 @@ fi
 
 # --- config:java ---
 if [[ "$(uname -s)" == "Darwin" && -d "/opt/homebrew/opt/openjdk@21" ]]; then
-    _jdk="$(brew --prefix openjdk@21 2>/dev/null)/libexec/openjdk.jdk/Contents/Home"
-    if [[ -d "$_jdk" ]]; then
-        export JAVA_HOME="$_jdk"
-        export PATH="$JAVA_HOME/bin:$PATH"
-    fi
-    unset _jdk
+    export JAVA_HOME="/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home"
+    export PATH="$JAVA_HOME/bin:$PATH"
 fi
 if [[ -z "$JAVA_HOME" ]] && command -v java &>/dev/null; then
-    export JAVA_HOME=$(dirname "$(dirname "$(readlink -f "$(which java)")")")
+    # macOS's stock readlink doesn't support -f; only follow the symlink if GNU coreutils is present
+    if command -v greadlink >/dev/null 2>&1; then
+        export JAVA_HOME=$(dirname "$(dirname "$(greadlink -f "$(which java)")")")
+    elif [[ "$(uname -s)" != "Darwin" ]]; then
+        export JAVA_HOME=$(dirname "$(dirname "$(readlink -f "$(which java)")")")
+    fi
 fi
 
 # --- config:plugins ---

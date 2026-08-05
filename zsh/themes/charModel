@@ -1,20 +1,32 @@
 # CharModel zsh theme
-# dotfiles v1.5.5
 # Date: 2026-06-28
 
 # git status is computed in precmd (once per prompt) to avoid blocking on every keypress
 _GIT_INFO=""
 
 function _update_git_info() {
-    local branch
+    local branch dirty_flag ahead_behind
     branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
     if [[ -n $branch ]]; then
         if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; then
             # * indicates a dirty working tree
-            _GIT_INFO="%F{#907aa9} ($branch*)%f"
+            dirty_flag="*"
         else
-            _GIT_INFO="%F{#907aa9} ($branch)%f"
+            dirty_flag=""
         fi
+
+        # ahead/behind counts vs upstream, e.g. ↑2 ↓1 — empty if no upstream is set
+        ahead_behind=""
+        local counts
+        counts=$(git rev-list --left-right --count '@{upstream}...HEAD' 2>/dev/null)
+        if [[ -n $counts ]]; then
+            local behind=${counts%%$'\t'*}
+            local ahead=${counts##*$'\t'}
+            [[ $behind -gt 0 ]] && ahead_behind+=" ↓${behind}"
+            [[ $ahead -gt 0 ]] && ahead_behind+=" ↑${ahead}"
+        fi
+
+        _GIT_INFO="%F{5} ($branch$dirty_flag)$ahead_behind%f"
     else
         _GIT_INFO=""
     fi
@@ -38,7 +50,7 @@ else
     _SSH_INDICATOR=""
 fi
 
-PROMPT='${_MACHINE_SYMBOL}${_SSH_INDICATOR}[%F{#907aa9}%n%f: %~]${_GIT_INFO} » '
+PROMPT='${_MACHINE_SYMBOL}${_SSH_INDICATOR}[%F{5}%n%f: %~]${_GIT_INFO} » '
 
 # emacs line-editing mode (ctrl+a/e for line start/end)
 bindkey -e
