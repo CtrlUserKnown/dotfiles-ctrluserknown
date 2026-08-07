@@ -3,7 +3,6 @@
 # date: 08-04-2026
 # updated dotfiles linker script
 
-
 # check for if the ~/.config directory is present on the system.
 # if it is not then make it
 echo "checking for ~/.config directory"
@@ -21,13 +20,25 @@ fi
 backup_dir="$HOME/dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$backup_dir"
 
+linux_only=" hypr quickshell "
+
 for dir in "$PWD"/*/; do
     name="$(basename "$dir")"
+
+    # skip linux configs if not on linux
+    if [ $(uname -s) != "Linux" ] && [[ "$linux_only" == *" $name "* ]]; then
+        echo "Skipping $name (Linux Only)"
+        continue
+    fi
+
+    # skip home as it will be place somewhere else
     [ "$name" = "home" ] && continue
     target="$HOME/.config/$name"
     if [ -e "$target" ] && [ ! -L "$target" ]; then
         mv "$target" "$backup_dir/"
     fi
+
+    # linking universal configs
     ln -sf "$dir" "$target"
     echo "linking $dir to .config directory"
     sleep 1

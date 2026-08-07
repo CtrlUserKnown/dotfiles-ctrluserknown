@@ -4,15 +4,15 @@
     {
       "id": "w2",
       "custom_name": null,
-      "identity_cwd": "/home/userknown/.config",
+      "identity_cwd": "/home/userknown/development/dotfiles",
       "public_pane_numbers": {
-        "1": 1
+        "1": 7
       },
-      "next_public_pane_number": 5,
+      "next_public_pane_number": 12,
       "public_tab_numbers": [
         1
       ],
-      "next_public_tab_number": 2,
+      "next_public_tab_number": 3,
       "tabs": [
         {
           "custom_name": null,
@@ -21,7 +21,7 @@
           },
           "panes": {
             "1": {
-              "cwd": "/home/userknown/.config"
+              "cwd": "/home/userknown/development/dotfiles"
             }
           },
           "zoomed": false,
