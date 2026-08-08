@@ -26,7 +26,7 @@ function _update_git_info() {
             [[ $ahead -gt 0 ]] && ahead_behind+=" ↑${ahead}"
         fi
 
-        _GIT_INFO="%F{5} ($branch$dirty_flag)$ahead_behind%f"
+        _GIT_INFO="%F{5} ($branch$dirty_flag)%f%F{3}$ahead_behind%f"
     else
         _GIT_INFO=""
     fi

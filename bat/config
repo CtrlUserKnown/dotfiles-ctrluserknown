@@ -1,1 +1,2 @@
-
+# use the terminal's own ANSI palette instead of a fixed-hex theme, so syntax colors follow the terminal theme
+--theme="ansi"
