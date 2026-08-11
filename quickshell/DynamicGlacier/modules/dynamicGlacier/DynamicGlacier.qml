@@ -1192,7 +1192,12 @@ Scope {
     }
 
     Timer {
-        interval: 3000
+        // Each tick forks ~9-11 short-lived shell processes (nmcli/bluetoothctl
+        // pipelines). At a flat 3s that was ~200 forks/min around the clock,
+        // even with the island collapsed and untouched. Wifi/BT state still
+        // feeds the collapsed island, so this can't be gated off entirely --
+        // instead poll fast only while the user is actually looking at it.
+        interval: (root.interactionOpen || root.mode === "wifi") ? 3000 : 15000
         repeat: true
         running: root.liveLinksEnabled
         triggeredOnStart: true

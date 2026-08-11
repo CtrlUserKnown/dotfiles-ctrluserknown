@@ -20,7 +20,7 @@ fi
 backup_dir="$HOME/dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$backup_dir"
 
-linux_only=" hypr quickshell "
+linux_only=" hypr quickshell ghostty-linux "
 
 for dir in "$PWD"/*/; do
     name="$(basename "$dir")"
@@ -39,7 +39,9 @@ for dir in "$PWD"/*/; do
     fi
 
     # linking universal configs
-    ln -sf "$dir" "$target"
+    # -n so an existing symlink is replaced rather than followed, which would
+    # otherwise nest the link inside the directory it already points at
+    ln -sfn "$dir" "$target"
     echo "linking $dir to .config directory"
     sleep 1
 done

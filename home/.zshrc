@@ -162,7 +162,8 @@ alias la="command eza -al --icons --color=auto"  # list all with icons
 alias lla="command eza -al --icons --color=auto" # same as la — alt name for muscle memory
 alias ll="command eza -l --icons --color=auto"   # list with icons
 alias reload='source ${ZDOTDIR:-$HOME}/.zshrc'   # reload shell config
-alias exi="exit"                                 # exit shell
+alias exi="exit"                                 # exit shellenv
+alias wlc="wl-copy" # copy to system clipboard
 
 alias y="yazi"          # file manager
 alias py="python3"      # python
@@ -186,7 +187,6 @@ fi
 
 alias mux="herdr"        # multiplexer
 alias attach="herdr"     # attach to a session
-alias b="command btop"   # system monitor
 alias f="fzf"            # fuzzy finder
 
 # suffix aliases — typing file.rs runs $EDITOR file.rs automatically

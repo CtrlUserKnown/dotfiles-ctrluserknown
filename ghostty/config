@@ -1,6 +1,6 @@
 # --- Appearance ---
 font-family = "JetBrains Mono"
-font-size = 16
+font-size = 14
 
 # --- Window size ---
 window-width = 150
@@ -35,3 +35,8 @@ cursor-style-blink = true
 
 # global: means this fires even when ghostty doesn't have focus
 # keybind = global:ctrl+grave_accent=toggle_quick_terminal
+
+# --- Platform overrides ---
+# ? makes the include optional. linker.sh only links ghostty-linux/ on Linux,
+# so on macOS this path doesn't exist and is skipped without error.
+config-file = ?~/.config/ghostty-linux/keybinds

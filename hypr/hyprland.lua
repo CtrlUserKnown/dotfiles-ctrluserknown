@@ -50,6 +50,21 @@ local browser     = "flatpak run app.zen_browser.zen"
 -- Autostart necessary processes (like notifications daemons, status bars, etc.)
 -- Or execute your favorite apps at launch like this:
 --
+-- >>> systemd user session >>>
+-- Hyprland is launched by gdm-wayland-session, which never activates
+-- graphical-session.target. xdg-desktop-portal has
+-- `Requisite=graphical-session.target`, so without this the portal can never
+-- start (file dialogs, screenshare and screenshots all break) and D-Bus logs
+-- a failed activation on every attempt.
+-- graphical-session.target itself sets RefuseManualStart, so we start
+-- hyprland-session.target (~/.config/systemd/user/hyprland-session.target),
+-- which is BindsTo= it. Env must be exported first or portals inherit no
+-- WAYLAND_DISPLAY.
+hl.on("hyprland.start", function ()
+  hl.exec_cmd([[sh -c 'systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE HYPRLAND_INSTANCE_SIGNATURE DISPLAY; dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE HYPRLAND_INSTANCE_SIGNATURE DISPLAY; systemctl --user start hyprland-session.target']])
+end)
+-- <<< systemd user session <<<
+
 hl.on("hyprland.start", function ()
 --   hl.exec_cmd(terminal)
   hl.exec_cmd("nm-applet")
@@ -130,8 +145,8 @@ hl.env("HYPRCURSOR_SIZE", "24")
 -- Refer to https://wiki.hypr.land/Configuring/Basics/Variables/
 hl.config({
     general = {
-        gaps_in  = 5,
-        gaps_out = 15,
+        gaps_in  = 3,
+        gaps_out = 5,
 
         border_size = 1,
 
@@ -300,7 +315,7 @@ local altMod = "ALT"
 
 -- Example binds, see https://wiki.hypr.land/Configuring/Basics/Binds/ for more
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(terminal))
-local closeWindowBind = hl.bind(mainMod .. " + W", hl.dsp.window.close())
+local closeWindowBind = hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 -- closeWindowBind:set_enabled(false)
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
@@ -309,7 +324,7 @@ hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))    -- dwindle only
-hl.bind(mainMod .. " + TAB", hl.dsp.exec_cmd("qs ipc -c overview call overview toggle"))
+hl.bind(mainMod .. " + SHIFT + TAB", hl.dsp.exec_cmd("qs ipc -c overview call overview toggle"))
 
 -- Vicinae (clipboard manager) toggle
 hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd("vicinae toggle"))
@@ -318,10 +333,10 @@ hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd("vicinae toggle"))
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(hyprmod))
 
 -- Move focus with mainMod + arrow keys
-hl.bind(altMod .. " + left",  hl.dsp.focus({ direction = "left" }))
-hl.bind(altMod .. " + right", hl.dsp.focus({ direction = "right" }))
-hl.bind(altMod .. " + up",    hl.dsp.focus({ direction = "up" }))
-hl.bind(altMod .. " + down",  hl.dsp.focus({ direction = "down" }))
+hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
+hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
+hl.bind(mainMod .. " + up",    hl.dsp.focus({ direction = "up" }))
+hl.bind(mainMod .. " + down",  hl.dsp.focus({ direction = "down" }))
 
 -- Switch workspaces with mainMod + [0-9]
 -- Move active window to a workspace with mainMod + SHIFT + [0-9]
@@ -337,25 +352,51 @@ hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:mag
 
 -- Scroll through existing workspaces with mainMod + scroll
 hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(mainMod .. " + TAB", hl.dsp.focus({ workspace = "e+1" }))
 hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
 
 -- Move/resize windows with mainMod + LMB/RMB and dragging
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
 hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
--- Laptop multimedia keys for volume and LCD brightness
+-- Brightness goes through DDC/CI, not brightnessctl: /sys/class/backlight only
+-- exists for an internal laptop panel, so on a desktop brightnessctl silently
+-- targets a keyboard LED instead of the monitor.
+local brightness = os.getenv("HOME") .. "/.config/hypr/scripts/brightness.sh"
+
+-- Multimedia keys for volume and monitor brightness
 hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
 hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      { locked = true, repeating = true })
 hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     { locked = true, repeating = true })
 hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   { locked = true, repeating = true })
-hl.bind("XF86MonBrightnessUp",  hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"),                  { locked = true, repeating = true })
-hl.bind("XF86MonBrightnessDown",hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-"),                  { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessUp",  hl.dsp.exec_cmd(brightness .. " up"),                              { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessDown",hl.dsp.exec_cmd(brightness .. " down"),                            { locked = true, repeating = true })
 
 -- Requires playerctl
 hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })
 hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
 hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
 hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
+
+-- Alternates for keyboards without dedicated media/brightness keys
+local volUp    = "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"
+local volDown  = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
+local volMute  = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+local micMute  = "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+local briUp    = brightness .. " up"
+local briDown  = brightness .. " down"
+
+hl.bind(mainMod .. " + equal",         hl.dsp.exec_cmd(volUp),   { locked = true, repeating = true })
+hl.bind(mainMod .. " + minus",         hl.dsp.exec_cmd(volDown), { locked = true, repeating = true })
+hl.bind(mainMod .. " + SHIFT + M",     hl.dsp.exec_cmd(volMute), { locked = true })
+hl.bind(mainMod .. " + " .. altMod .. " + M", hl.dsp.exec_cmd(micMute), { locked = true })
+
+hl.bind(mainMod .. " + " .. altMod .. " + equal", hl.dsp.exec_cmd(briUp),   { locked = true, repeating = true })
+hl.bind(mainMod .. " + " .. altMod .. " + minus", hl.dsp.exec_cmd(briDown), { locked = true, repeating = true })
+
+hl.bind(mainMod .. " + " .. altMod .. " + SPACE", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
+hl.bind(mainMod .. " + " .. altMod .. " + right", hl.dsp.exec_cmd("playerctl next"),       { locked = true })
+hl.bind(mainMod .. " + " .. altMod .. " + left",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
 
 
 --------------------------------
@@ -420,5 +461,23 @@ hl.window_rule({
     match = { class = "hyprland-run" },
 
     move  = "20 monitor_h-120",
+    float = true,
+})
+
+-- Picture-in-Picture: float, and pin so it follows across workspaces
+hl.window_rule({
+    name  = "pip",
+    match = { title = "^(Picture-in-Picture)$" },
+
+    float = true,
+    pin   = true,
+    size  = "400 225",
+})
+
+-- Dialogs that spawn as real windows (file pickers, confirmations)
+hl.window_rule({
+    name  = "float-dialogs",
+    match = { class = "^(xdg-desktop-portal-gtk)$" },
+
     float = true,
 })

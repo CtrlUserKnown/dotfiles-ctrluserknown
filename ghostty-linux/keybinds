@@ -1,0 +1,28 @@
+# Linux-only Ghostty keybindings.
+#
+# linker.sh only links this directory on Linux, and ghostty/config pulls it in
+# with an optional include (`?`), which is silently skipped when the file is
+# missing. macOS therefore never loads any of this and keeps its stock cmd+
+# defaults.
+
+# --- Copy/paste without shift ---
+# `performable:` only consumes the key when the action can actually run, so
+# ctrl+c copies when there is a selection and otherwise falls through to the
+# shell as SIGINT.
+keybind = performable:ctrl+c=copy_to_clipboard:mixed
+keybind = ctrl+v=paste_from_clipboard
+
+# --- Splits ---
+# alt+d splits side by side, alt+shift+d stacks them
+keybind = alt+d=new_split:right
+keybind = alt+shift+d=new_split:down
+
+# --- Split focus ---
+keybind = alt+h=goto_split:left
+keybind = alt+j=goto_split:down
+keybind = alt+k=goto_split:up
+keybind = alt+l=goto_split:right
+keybind = alt+arrow_left=goto_split:left
+keybind = alt+arrow_down=goto_split:down
+keybind = alt+arrow_up=goto_split:up
+keybind = alt+arrow_right=goto_split:right
