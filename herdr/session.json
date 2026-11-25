@@ -2,14 +2,14 @@
   "version": 3,
   "workspaces": [
     {
-      "id": "w2",
+      "id": "w4",
       "custom_name": null,
-      "identity_cwd": "/Users/christian/development/ctrlvim",
+      "identity_cwd": "/home/userknown/development/ssm",
       "public_pane_numbers": {
-        "1": 7,
-        "2": 12
+        "3": 5,
+        "4": 6
       },
-      "next_public_pane_number": 14,
+      "next_public_pane_number": 7,
       "public_tab_numbers": [
         1
       ],
@@ -22,24 +22,36 @@
               "direction": "Horizontal",
               "ratio": 0.5,
               "first": {
-                "Pane": 1
+                "Pane": 3
               },
               "second": {
-                "Pane": 2
+                "Pane": 4
               }
             }
           },
           "panes": {
-            "1": {
-              "cwd": "/Users/christian/development/ctrlvim"
+            "4": {
+              "cwd": "/home/userknown/development/dotfiles",
+              "agent_session": {
+                "source": "herdr:opencode",
+                "agent": "opencode",
+                "kind": "id",
+                "value": "ses_dedc3aba4ffeprjJd5LABrLYFj"
+              }
             },
-            "2": {
-              "cwd": "/Users/christian/development/ctrlvim"
+            "3": {
+              "cwd": "/home/userknown/development/ssm",
+              "agent_session": {
+                "source": "herdr:opencode",
+                "agent": "opencode",
+                "kind": "id",
+                "value": "ses_dedcdc12fffe7ShhNiBiiZsQRj"
+              }
             }
           },
           "zoomed": false,
-          "focused": 2,
-          "root_pane": 1
+          "focused": 3,
+          "root_pane": 3
         }
       ],
       "active_tab": 0
@@ -47,7 +59,7 @@
   ],
   "active": 0,
   "selected": 0,
-  "sidebar_width": 26,
-  "sidebar_section_split": 0.5,
+  "sidebar_width": null,
+  "sidebar_section_split": null,
   "collapsed_space_keys": []
 }

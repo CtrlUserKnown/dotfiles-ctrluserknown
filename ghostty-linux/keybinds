@@ -12,10 +12,18 @@
 keybind = performable:ctrl+c=copy_to_clipboard:mixed
 keybind = ctrl+v=paste_from_clipboard
 
+# --- Hand chords back to the running app ---
+# Ghostty binds ctrl+shift+j to write_screen_file:paste, which dumps the screen
+# to a temp file and pastes the *path* as keystrokes — so a TUI that wants the
+# chord (ctrlvim's "duplicate line below") receives a filename instead. The
+# super+ variant keeps the screen-dump action if it's ever wanted.
+keybind = ctrl+shift+j=unbind
+
 # --- Splits ---
 # alt+d splits side by side, alt+shift+d stacks them
 keybind = alt+d=new_split:right
 keybind = alt+shift+d=new_split:down
+keybind = alt+w=close_surface
 
 # --- Split focus ---
 keybind = alt+h=goto_split:left
