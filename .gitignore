@@ -16,3 +16,14 @@ zsh/zsh/.version_stamp
 # tmux plugin repos (managed by tpm)
 zsh/tmux/plugins/
 tmux/plugins/
+
+# local runtime state / generated config (never commit)
+herdr/session.json
+herdr/session-snapshots/
+opencode/cli.json
+opencode/service.json
+opencode/tui.jsonc
+opencode/herdr-tui-session.js
+opencode/herdr-opencode/
+opencode/plugins/herdr-agent-state.js
+opencode/plugins/moshi-hooks.ts
