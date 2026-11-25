@@ -23,3 +23,10 @@ key = "prefix+g"
 type = "pane"
 command = "lazygit"
 description = "run lazygit"
+
+[ui]
+status_indicators = "symbols"
+
+[theme]
+name = "terminal"
+auto_switch = false

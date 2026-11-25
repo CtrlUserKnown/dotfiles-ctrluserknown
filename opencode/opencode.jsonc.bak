@@ -1,0 +1,27 @@
+ {
+   "$schema": "https://opencode.ai/config.json",
+   "instructions": ["~/.config/opencode/AGENTS.md"],
+   "lsp": {
+       "rust-analyzer": {
+           "command": ["rust-analyzer"],
+           "extensions": [".rs"],
+           "env": {
+               "RUST_LOG": "debug"
+           }
+       },
+       "pyright": {
+           "command": ["pyright-langserver", "--stdio"],
+           "extensions": [".py", ".pyi"],
+           "initialization": {
+               "python": {
+                   "pythonPath": "/usr/bin/python3"
+               }
+           }
+       },
+     "sourcekit-lsp": {
+         "disabled": false,
+         "command": ["sourcekit-lsp"],
+         "extensions": [".swift", ".objc", ".objcpp"]
+     }
+   }
+ }

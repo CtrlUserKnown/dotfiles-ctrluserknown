@@ -162,8 +162,8 @@ alias la="command eza -al --icons --color=auto"  # list all with icons
 alias lla="command eza -al --icons --color=auto" # same as la — alt name for muscle memory
 alias ll="command eza -l --icons --color=auto"   # list with icons
 alias reload='source ${ZDOTDIR:-$HOME}/.zshrc'   # reload shell config
-alias exi="exit"                                 # exit shellenv
-alias wlc="wl-copy" # copy to system clipboard
+alias exi="exit"                                 # exit shell
+alias pkg="brew"
 
 alias y="yazi"          # file manager
 alias py="python3"      # python
@@ -177,6 +177,8 @@ alias rn="rustc"
 alias crun="cargo run"
 
 alias lz="lazygit"      # git TUI
+
+alias gch="git checkout"
 
 alias opc="opencode"    # opencode AI
 alias llama="ollama"    # local LLMs
@@ -242,6 +244,36 @@ function duplicate() {
     fi
 }
 
+# windows like ls function
+pls() {
+  local entry name mode mtime length
+
+  printf '    Directory: %s\n\n' "$PWD"
+  printf '%-20s %-21s %8s %s\n' 'Mode' 'LastWriteTime' 'Length' 'Name'
+  printf '%-20s %-21s %8s %s\n' '----' '-------------' '------' '----'
+
+  for entry in ./*(N); do
+    name=${entry#./}
+    mtime=$(stat -f '%Sm' -t '%m/%d/%Y %I:%M:%S %p' "$entry")
+
+    if [[ -d $entry && ! -L $entry ]]; then
+      mode='d-----'
+      length=''
+    elif [[ -L $entry ]]; then
+      mode='-a---l'
+      length=$(stat -f '%z' "$entry")
+    elif [[ ! -w $entry ]]; then
+      mode='-ar---'
+      length=$(stat -f '%z' "$entry")
+    else
+      mode='-a----'
+      length=$(stat -f '%z' "$entry")
+    fi
+
+    printf '%-20s %-21s %8s %s\n' "$mode" "$mtime" "$length" "$name"
+  done
+}
+
 # --- config:hooks ---
 # auto-run ls when entering these frequently-navigated directories
 chpwd() {
@@ -273,17 +305,37 @@ if [[ "$(uname -s)" == "Darwin" && -d "/opt/homebrew/opt/ruby@3.4/bin" ]]; then
 fi
 
 # --- config:java ---
-if [[ "$(uname -s)" == "Darwin" && -d "/opt/homebrew/opt/openjdk@21" ]]; then
-    export JAVA_HOME="/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home"
-    export PATH="$JAVA_HOME/bin:$PATH"
+# Drop bogus inherited value (e.g. /usr from Apple stub)
+if [[ -n "$JAVA_HOME" && ! -x "$JAVA_HOME/bin/java" ]]; then
+    unset JAVA_HOME
 fi
-if [[ -z "$JAVA_HOME" ]] && command -v java &>/dev/null; then
-    # macOS's stock readlink doesn't support -f; only follow the symlink if GNU coreutils is present
-    if command -v greadlink >/dev/null 2>&1; then
-        export JAVA_HOME=$(dirname "$(dirname "$(greadlink -f "$(which java)")")")
-    elif [[ "$(uname -s)" != "Darwin" ]]; then
-        export JAVA_HOME=$(dirname "$(dirname "$(readlink -f "$(which java)")")")
+
+# Prefer LTS 25, then 21, then latest Homebrew openjdk
+for _jdk in \
+    "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home" \
+    "/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home" \
+    "/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home" \
+    "/opt/homebrew/opt/java/libexec/openjdk.jdk/Contents/Home"; do
+    if [[ -x "$_jdk/bin/java" ]]; then
+        export JAVA_HOME="$_jdk"
+        break
     fi
+done
+
+unset _jdk
+# macOS native lookup as last resort (skips /usr/bin/java stub)
+if [[ -z "$JAVA_HOME" || ! -x "$JAVA_HOME/bin/java" ]]; then
+    if [[ "$(uname -s)" == "Darwin" ]] && _jh="$(/usr/libexec/java_home 2>/dev/null)" && [[ -x "$_jh/bin/java" ]]; then
+        export JAVA_HOME="$_jh"
+    fi
+    unset _jh
+fi
+
+if [[ -n "$JAVA_HOME" ]]; then
+    case ":$PATH:" in
+        *":$JAVA_HOME/bin:"*) ;;
+        *) export PATH="$JAVA_HOME/bin:$PATH" ;;
+    esac
 fi
 
 # --- config:plugins ---
@@ -325,3 +377,6 @@ if [[ -f "/opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zs
 elif [[ -f "/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
     source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
+
+# opencode
+export PATH=/Users/christian/.opencode/bin:$PATH

@@ -4,12 +4,12 @@
     {
       "id": "w2",
       "custom_name": null,
-      "identity_cwd": "/home/userknown/development/ctrlvim",
+      "identity_cwd": "/Users/christian/development/ctrlvim",
       "public_pane_numbers": {
         "1": 7,
         "2": 12
       },
-      "next_public_pane_number": 13,
+      "next_public_pane_number": 14,
       "public_tab_numbers": [
         1
       ],
@@ -31,16 +31,10 @@
           },
           "panes": {
             "1": {
-              "cwd": "/home/userknown/development/ctrlvim"
+              "cwd": "/Users/christian/development/ctrlvim"
             },
             "2": {
-              "cwd": "/home/userknown/development/ctrlvim",
-              "agent_session": {
-                "source": "herdr:claude",
-                "agent": "claude",
-                "kind": "id",
-                "value": "8a4fd375-ead4-447f-822c-d3e7a385797a"
-              }
+              "cwd": "/Users/christian/development/ctrlvim"
             }
           },
           "zoomed": false,
