@@ -20,7 +20,7 @@ fi
 backup_dir="$HOME/dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$backup_dir"
 
-linux_only=" hypr quickshell ghostty-linux "
+linux_only=" ghostty-linux "
 
 for dir in "$PWD"/*/; do
     name="$(basename "$dir")"
