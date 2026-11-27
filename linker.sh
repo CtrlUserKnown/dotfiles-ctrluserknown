@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# ctrlUserKnown dotfiles symlinker
-# date: 08-04-2026
-# updated dotfiles linker script
+set -euo pipefail
+
+# Resolve the repository from this script so it works from any directory.
+repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 # check for if the ~/.config directory is present on the system.
 # if it is not then make it
@@ -22,11 +23,16 @@ mkdir -p "$backup_dir"
 
 linux_only=" ghostty-linux "
 
-for dir in "$PWD"/*/; do
+for dir in "$repo_dir"/*/; do
     name="$(basename "$dir")"
 
+    # Skip repository metadata and directories that are not ~/.config entries.
+    case "$name" in
+        .git|.claude|home) continue ;;
+    esac
+
     # skip linux configs if not on linux
-    if [ $(uname -s) != "Linux" ] && [[ "$linux_only" == *" $name "* ]]; then
+    if [ "$(uname -s)" != "Linux" ] && [[ "$linux_only" == *" $name "* ]]; then
         echo "Skipping $name (Linux Only)"
         continue
     fi
@@ -47,7 +53,8 @@ for dir in "$PWD"/*/; do
 done
 
 shopt -s dotglob
-for item in "$PWD"/home/*; do
+for item in "$repo_dir"/home/*; do
+    [ -e "$item" ] || continue
     target="$HOME/$(basename "$item")"
     if [ -e "$target" ] && [ ! -L "$target" ]; then
         mv "$target" "$backup_dir/"
